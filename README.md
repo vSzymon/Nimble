@@ -43,7 +43,7 @@ public class UsersModule : Module
 {
     public override RouteGroupBuilder MapGroup(IEndpointRouteBuilder app)
     {
-        return app.MapGroup("/api/users");
+        return app.MapGroup("/users");
     }
 }
 ```
@@ -94,7 +94,7 @@ app.UseModules(app => app.MapGroup("/api/v1"));
 app.Run();
 ```
 
-This will prefix all your module routes with `/api/v1`, so the `UsersModule` routes would become `/api/v1/api/users`.
+This will prefix all your module routes with `/api/v1`, so the `UsersModule` routes would become `/api/v1/users`.
 
 With these components in place, Nimble will automatically discover and register your modules and endpoints. The `UsersModule` will have two endpoints: a GET request to fetch a user by ID and a POST request to create a new user. Additionally, there will be a standalone health check endpoint at `/health`.
 
