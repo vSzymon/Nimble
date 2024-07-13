@@ -5,12 +5,24 @@ using Microsoft.Extensions.Logging;
 using System.Reflection;
 
 namespace Nimble;
+
+/// <summary>
+/// Provides extension methods for registering and using Nimble modules and endpoints.
+/// </summary>
 public static class Installer
 {
 	/// <summary>
-	/// Registares required services, endpoints and modules 
+	/// Registers all discovered modules and endpoints with the dependency injection container.
 	/// </summary>
-	/// <param name="builder"></param>
+	/// <param name="builder">The <see cref="WebApplicationBuilder"/> to configure.</param>
+	/// <remarks>
+	/// This method scans the assembly containing the Installer class for: <br/>
+	/// - Classes deriving from <see cref="Module"/> (excluding abstract classes) <br/>
+	/// - Classes implementing <see cref="IEndpoint{T}"/> for each discovered module <br/>
+	/// - Classes implementing <see cref="IEndpoint"/> (orphan endpoints) <br/>
+	/// <br/>
+	/// It then registers these types with the DI container as transient services.
+	/// </remarks>
 	public static void RegisterModules(this WebApplicationBuilder builder)
 	{
 		var allTypes = Assembly
@@ -51,10 +63,22 @@ public static class Installer
 	}
 
 	/// <summary>
-	/// Adds all registered modules and endpoints to the <see cref="IApplicationBuilder"/>
+	/// Configures the application to use all registered modules and endpoints.
 	/// </summary>
-	/// <param name="app"></param>
-	/// <param name="globalGroupFactory">Factory for global api group that all registered modules will inherit from</param>
+	/// <param name="app">The <see cref="WebApplication"/> to configure.</param>
+	/// <param name="globalGroupFactory">
+	/// An optional factory function to create a global <see cref="RouteGroupBuilder"/>.
+	/// If provided, all modules will inherit from this global group.
+	/// </param>
+	/// <remarks>
+	/// This method:<br/>
+	/// 1. Creates a global group if a factory is provided. <br/>
+	/// 2. Retrieves all registered modules and maps their endpoints. <br/>
+	/// 3. Maps all orphan endpoints directly to the application. <br/>
+	/// 4. Logs information about discovered modules and endpoints. <br/>
+	/// <br/>
+	/// Call this method after <see cref="RegisterModules"/> and after calling `builder.Build()`.
+	/// </remarks>
 	public static void UseModules(this WebApplication app, Func<IEndpointRouteBuilder, RouteGroupBuilder>? globalGroupFactory = null)
 	{
 		var loggerFactory = app.Services.GetRequiredService<ILoggerFactory>();
